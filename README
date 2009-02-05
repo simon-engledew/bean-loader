@@ -1,0 +1,70 @@
+`BeanLoader` will attempt to automatically map column names to bean accessors via the four main methods:
+
+  * `first`
+  * `each`
+  * `collect`
+  * `map`
+
+{{{
+public static <T> T first(Class<T> type, PreparedStatement preparedStatement)
+public static <T> Iterable<T> each(Class<T> type, PreparedStatement preparedStatement)
+public static <T, C extends Collection<T>> C collect(Class<T> type, C collection, PreparedStatement preparedStatement)
+public static <K, V extends KeyedBean<K>, M extends Map<K, V>> M map(Class<V> type, M map, PreparedStatement preparedStatement)
+}}}
+
+It will correctly handle `Enums`, `Dates`, `primitives` and any `Object` with a constructor that takes a `String`.
+Additional `TypeLoaders` can be added to expand this behaviour, and the UTC `DateFormat` used to process `Dates` can be set manually (which you may have to do if you are not using MySQL).
+
+Some examples:
+{{{
+PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM people");
+
+List<Person> people = BeanLoader.collect(Person.class, new ArrayList<Person>(), preparedStatement);
+}}}
+
+and:
+
+{{{
+for (Person person : BeanLoader.each(Person.class, preparedStatement))
+{
+    System.out.println(person.getName());
+}
+}}}
+
+and maps:
+{{{
+public class Person implements BeanLoader.KeyedBean<Integer> {
+    private int id;
+    public Integer getKey() { return this.getId(); }
+    public int getId() { return this.id; }
+    public void setId(int id) { this.id = id; }
+
+    private String name;    
+    ...
+}
+
+...
+
+SortedMap<Integer, Person> people = BeanLoader.map(Person.class, new TreeMap<Integer, Person>(), preparedStatement);
+
+}}}
+
+for legacy mappings or joins, look to `SQL` and `AS`:
+
+{{{
+public class Comment {
+    private String commentBody;
+    public String getCommentBody() { return this.commentBody; }
+    public void setCommentBody(String commentBody) { this.commentBody = commentBody; }
+
+    private int parentId;
+    ...
+}
+
+// here's where the magic happens:
+String statement = "SELECT comments.body AS commentBody, comments.parent_id AS parentId, FROM posts, comments";
+
+...
+}}}
+
+`NOTE`: Due to the heavy use of Generics, this'll require Java 1.5 or greater.
