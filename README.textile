@@ -5,34 +5,34 @@
   * @collect@
   * @map@
 
-<code><pre>
+<pre>
 public static <T> T first(Class<T> type, PreparedStatement preparedStatement)
 public static <T> Iterable<T> each(Class<T> type, PreparedStatement preparedStatement)
 public static <T, C extends Collection<T>> C collect(Class<T> type, C collection, PreparedStatement preparedStatement)
 public static <K, V extends KeyedBean<K>, M extends Map<K, V>> M map(Class<V> type, M map, PreparedStatement preparedStatement)
-</pre></code>
+</pre>
 
 It will correctly handle @Enums@, @Dates@, @primitives@ and any @Object@ with a constructor that takes a @String@.
 Additional @TypeLoaders@ can be added to expand this behaviour, and the UTC @DateFormat@ used to process @Dates@ can be set manually (which you may have to do if you are not using MySQL).
 
 Some examples:
-<code><pre>
+<pre>
 PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM people");
 
 List<Person> people = BeanLoader.collect(Person.class, new ArrayList<Person>(), preparedStatement);
-</pre></code>
+</pre>
 
 and:
 
-<code><pre>
+<pre>
 for (Person person : BeanLoader.each(Person.class, preparedStatement))
 {
     System.out.println(person.getName());
 }
-</pre></code>
+</pre>
 
 and maps:
-<code><pre>
+<pre>
 public class Person implements BeanLoader.KeyedBean<Integer> {
     private int id;
     public Integer getKey() { return this.getId(); }
@@ -47,11 +47,11 @@ public class Person implements BeanLoader.KeyedBean<Integer> {
 
 SortedMap<Integer, Person> people = BeanLoader.map(Person.class, new TreeMap<Integer, Person>(), preparedStatement);
 
-</pre></code>
+</pre>
 
 for legacy mappings or joins, look to @SQL@ and @AS@:
 
-<code><pre>
+<pre>
 public class Comment {
     private String commentBody;
     public String getCommentBody() { return this.commentBody; }
@@ -65,6 +65,6 @@ public class Comment {
 String statement = "SELECT comments.body AS commentBody, comments.parent_id AS parentId, FROM posts, comments";
 
 ...
-</pre></code>
+</pre>
 
 @NOTE@: Due to the heavy use of Generics, this'll require Java 1.5 or greater.
